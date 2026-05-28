@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import time
+import sys
 from collections import deque
 from typing import List, Optional, Tuple
 
 from robot import DIR_ORDER, DIR_TO_VEC, Direction, RobotController
+
+sys.path.append('/home/pi/TurboPi/')
 
 try:
 	from HiwonderSDK.Sonar import Sonar
