@@ -1,0 +1,13 @@
+flowchart TD
+    Start([Start at cell]) --> Sense[Sense walls + openings]
+    Sense --> Update[Update map: add walls, mark open/unknown]
+    Update --> Flood[Compute floodfill distances on known map]
+    Flood --> Reached{At goal?}
+    Reached -- Yes --> End([END])
+    Reached -- No --> HasMove{Any neighbor with finite distance?}
+    HasMove -- Yes --> Choose[Pick lowest distance neighbor
+    Tie-break: straight > right > left > back]
+    HasMove -- No --> Fallback[Allow unknown neighbor or backtrack]
+    Choose --> Move[Execute move; update pose]
+    Fallback --> Move
+    Move --> Sense
