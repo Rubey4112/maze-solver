@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+import logging
 from typing import Dict, Iterable, List, Optional, Tuple
 
 
@@ -52,6 +53,7 @@ class RobotController:
 		self.walls: List[List[Dict[Direction, Optional[bool]]]] = [
 			[self._new_cell() for _ in range(width)] for _ in range(height)
 		]
+		self._logger = logging.getLogger(__name__)
 
 	def _new_cell(self) -> Dict[Direction, Optional[bool]]:
 		return {d: None for d in DIR_ORDER}
@@ -68,6 +70,15 @@ class RobotController:
 		nx, ny = x + dx, y + dy
 		if self.in_bounds(nx, ny):
 			self.walls[ny][nx][OPPOSITE[direction]] = is_wall
+
+		self._logger.info(
+			"Front sensor at (%d,%d) facing %s: wall=%s",
+			x,
+			y,
+			direction.value,
+			is_wall,
+		)
+		self._logger.info("Current map:\n%s", self._format_map())
 
 	def turn_left(self) -> None:
 		idx = (DIR_ORDER.index(self.pose.direction) - 1) % len(DIR_ORDER)
@@ -164,4 +175,43 @@ class RobotController:
 			self.turn_left()
 		elif rel == "B":
 			self.turn_back()
+
+	def _format_map(self) -> str:
+		def wall_char(state: Optional[bool], horizontal: bool) -> str:
+			if state is True:
+				return "-" if horizontal else "|"
+			if state is False:
+				return " "
+			return "?"
+
+		def pose_marker(x: int, y: int) -> str:
+			if self.pose.x == x and self.pose.y == y:
+				if self.pose.direction == Direction.NORTH:
+					return "^"
+				if self.pose.direction == Direction.EAST:
+					return ">"
+				if self.pose.direction == Direction.SOUTH:
+					return "v"
+				return "<"
+			return " "
+
+		lines: List[str] = []
+		for y in range(self.height):
+			top = "+"
+			for x in range(self.width):
+				top += wall_char(self.walls[y][x][Direction.NORTH], True) * 3 + "+"
+			lines.append(top)
+
+			mid = ""
+			for x in range(self.width):
+				mid += wall_char(self.walls[y][x][Direction.WEST], False)
+				mid += " " + pose_marker(x, y) + " "
+			mid += wall_char(self.walls[y][self.width - 1][Direction.EAST], False)
+			lines.append(mid)
+
+		bottom = "+"
+		for x in range(self.width):
+			bottom += wall_char(self.walls[self.height - 1][x][Direction.SOUTH], True) * 3 + "+"
+		lines.append(bottom)
+		return "\n".join(lines)
 

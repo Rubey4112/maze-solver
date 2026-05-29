@@ -197,11 +197,36 @@ def simulate() -> None:
 			print("No reachable move from current knowledge.")
 			break
 
+		print(
+			f"Step {step}: pose=({robot.pose.y}, {robot.pose.x}) heading={robot.pose.direction.value} "
+			f"plan={next_dir.value}"
+		)
+
 		robot.turn_towards(next_dir)
+		if robot.pose.direction != next_dir:
+			print(
+				f"Step {step}: turn to {robot.pose.direction.value}, replanning on new heading"
+			)
+			distances = compute_distances(robot, goal_xy, allow_unknown=True)
+			next_dir = robot.choose_next_move(distances, allow_unknown=True)
+			if next_dir is None:
+				print("No reachable move from current knowledge.")
+				break
 
 		r, c = robot.pose.y, robot.pose.x
 		is_wall = maze.grid[r][c].walls[robot.pose.direction.value]
 		robot.sense_front(is_wall)
+		print(
+			f"Step {step}: sense front {robot.pose.direction.value} -> "
+			f"{'WALL' if is_wall else 'OPEN'}"
+		)
+
+		distances = compute_distances(robot, goal_xy, allow_unknown=True)
+		next_dir = robot.choose_next_move(distances, allow_unknown=True)
+		if next_dir is None:
+			print("No reachable move from current knowledge.")
+			break
+		print(f"Step {step}: replan -> {next_dir.value}")
 
 		if not robot.move_forward(allow_unknown=False):
 			continue

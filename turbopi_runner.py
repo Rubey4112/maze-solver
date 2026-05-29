@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 import sys
 from collections import deque
+import logging
 from typing import List, Optional, Tuple
 
 from robot import DIR_ORDER, DIR_TO_VEC, Direction, RobotController
@@ -16,12 +17,12 @@ except Exception as exc:
 	raise RuntimeError("Run this file on the TurboPi with the SDK installed.") from exc
 
 
-CELL_MM = 180
-FRONT_WALL_MM = 120
-FORWARD_SPEED = 120
-FORWARD_TIME_SEC = 0.9
-TURN_RATE = 2.2
-TURN_90_TIME_SEC = 0.55
+CELL_MM = 540
+FRONT_WALL_MM = 202
+FORWARD_SPEED = 100
+FORWARD_TIME_SEC = 1.8
+TURN_RATE = 0.2
+TURN_90_TIME_SEC = 1.05
 
 
 def compute_distances(
@@ -136,9 +137,10 @@ class TurboPiRunner:
 
 
 if __name__ == "__main__":
-	size = 5
-	start_xy = (0, 4)
-	goal_xy = (4, 0)
+	logging.basicConfig(level=logging.INFO)
+	size = 3
+	start_xy = (0, 2)
+	goal_xy = (2, 0)
 
 	robot = RobotController(
 		width=size,
