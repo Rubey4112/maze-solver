@@ -1,40 +1,36 @@
-from __future__ import annotations
+from ucollections import deque
 
-from collections import deque
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
-
-DIRS: List[Tuple[str, int, int]] = [
+DIRS = [
 	("N", -1, 0),
 	("E", 0, 1),
 	("S", 1, 0),
 	("W", 0, -1),
 ]
-OPPOSITE: Dict[str, str] = {"N": "S", "S": "N", "E": "W", "W": "E"}
+OPPOSITE = {"N": "S", "S": "N", "E": "W", "W": "E"}
 
 
-@dataclass
 class Cell:
-	walls: Dict[str, bool] = field(default_factory=lambda: {"N": False, "E": False, "S": False, "W": False})
+	def __init__(self, walls=None):
+		self.walls = walls or {"N": False, "E": False, "S": False, "W": False}
 
 
 class Maze:
-	def __init__(self, size: int) -> None:
+	def __init__(self, size):
 		self.size = size
-		self.grid: List[List[Cell]] = [[Cell() for _ in range(size)] for _ in range(size)]
+		self.grid = [[Cell() for _ in range(size)] for _ in range(size)]
 		self._add_boundary_walls()
 
-	def __str__(self) -> str:
+	def __str__(self):
 		return self.render()
 
 	def render(
 		self,
-		start: Optional[Tuple[int, int]] = None,
-		goal: Optional[Tuple[int, int]] = None,
-		path: Optional[List[Tuple[int, int]]] = None,
-	) -> str:
+		start=None,
+		goal=None,
+		path=None,
+	):
 		path_set = set(path or [])
-		lines: List[str] = []
+		lines = []
 		for r in range(self.size):
 			top = []
 			mid = []
@@ -63,7 +59,7 @@ class Maze:
 		lines.append("".join(bottom))
 		return "\n".join(lines)
 
-	def _add_boundary_walls(self) -> None:
+	def _add_boundary_walls(self):
 		for r in range(self.size):
 			self.grid[r][0].walls["W"] = True
 			self.grid[r][self.size - 1].walls["E"] = True
@@ -71,10 +67,10 @@ class Maze:
 			self.grid[0][c].walls["N"] = True
 			self.grid[self.size - 1][c].walls["S"] = True
 
-	def in_bounds(self, r: int, c: int) -> bool:
+	def in_bounds(self, r, c):
 		return 0 <= r < self.size and 0 <= c < self.size
 
-	def set_wall(self, r: int, c: int, direction: str, exists: bool = True) -> None:
+	def set_wall(self, r, c, direction, exists=True):
 		if direction not in OPPOSITE:
 			raise ValueError(f"Invalid direction: {direction}")
 		self.grid[r][c].walls[direction] = exists
@@ -83,8 +79,8 @@ class Maze:
 		if self.in_bounds(nr, nc):
 			self.grid[nr][nc].walls[OPPOSITE[direction]] = exists
 
-	def neighbors(self, r: int, c: int) -> List[Tuple[int, int]]:
-		result: List[Tuple[int, int]] = []
+	def neighbors(self, r, c):
+		result = []
 		for d, dr, dc in DIRS:
 			if self.grid[r][c].walls[d]:
 				continue
@@ -93,12 +89,12 @@ class Maze:
 				result.append((nr, nc))
 		return result
 
-	def flood_fill(self, goal: Tuple[int, int]) -> List[List[int]]:
+	def flood_fill(self, goal):
 		dist = [[99 for _ in range(self.size)] for _ in range(self.size)]
 		gr, gc = goal
 		dist[gr][gc] = 0
 
-		queue: deque[Tuple[int, int]] = deque([(gr, gc)])
+		queue = deque([(gr, gc)], self.size * self.size)
 		while queue:
 			r, c = queue.popleft()
 			for nr, nc in self.neighbors(r, c):
@@ -107,7 +103,7 @@ class Maze:
 					queue.append((nr, nc))
 		return dist
 
-	def solve(self, start: Tuple[int, int], goal: Tuple[int, int]) -> Optional[List[Tuple[int, int]]]:
+	def solve(self, start, goal):
 		dist = self.flood_fill(goal)
 		sr, sc = start
 		if dist[sr][sc] == 99:
@@ -129,7 +125,7 @@ class Maze:
 		return path
 
 
-def _print_dist(dist: List[List[int]]) -> None:
+	def _print_dist(dist):
 	for row in dist:
 		print(" ".join(f"{v:2}" for v in row))
 
